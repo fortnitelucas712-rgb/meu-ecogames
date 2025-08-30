@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EcoGames</title>
+
+  <!-- Firebase v9 Modular -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
+
+    // Suas chaves do Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyDgiS4xhoJtK7xJ2KaHRhYo07iLuegHHko",
+      authDomain: "ecogames-42fd2.firebaseapp.com",
+      projectId: "ecogames-42fd2",
+      storageBucket: "ecogames-42fd2.firebasestorage.app",
+      messagingSenderId: "166625277922",
+      appId: "1:166625277922:web:aaf653d8dd26f7595aebbb",
+      measurementId: "G-FZ059KZ2HK"
+    };
+
+    // Inicializa Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // Funções
+    window.registrar = function() {
+      const email = document.getElementById('email').value;
+      const senha = document.getElementById('senha').value;
+      createUserWithEmailAndPassword(auth, email, senha)
+        .then(() => alert('Usuário criado com sucesso!'))
+        .catch(err => alert(err.message));
+    }
+
+    window.entrar = function() {
+      const email = document.getElementById('email').value;
+      const senha = document.getElementById('senha').value;
+      signInWithEmailAndPassword(auth, email, senha)
+        .then(user => {
+          alert('Logado com sucesso!');
+          mostrarPontos();
+        })
+        .catch(err => alert(err.message));
+    }
+
+    window.salvarPontos = async function(pontos) {
+      const user = auth.currentUser;
+      if(user) {
+        await setDoc(doc(db, "usuarios", user.uid), { pontos });
+        mostrarPontos();
+      } else {
+        alert('Faça login primeiro!');
+      }
+    }
+
+    window.mostrarPontos = async function() {
+      const user = auth.currentUser;
+      if(user) {
+        const docSnap = await getDoc(doc(db, "usuarios", user.uid));
+        if(docSnap.exists()) {
+          document.getElementById('pontos').innerText = docSnap.data().pontos;
+        }
+      }
+    }
+  </script>
+</head>
+<body>
+  <h1>🌱 Bem-vindo ao EcoGames!</h1>
+
+  <h2>Login / Registro</h2>
+  <input type="email" id="email" placeholder="Email"><br>
+  <input type="password" id="senha" placeholder="Senha"><br>
+  <button onclick="entrar()">Entrar</button>
+  <button onclick="registrar()">Registrar</button>
+
+  <h2>Pontuação</h2>
+  <p>Seus pontos: <span id="pontos">0</span></p>
+  <button onclick="salvarPontos(10)">Ganhar 10 pontos</button>
+</body>
+</html>
